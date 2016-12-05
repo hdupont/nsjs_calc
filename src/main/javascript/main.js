@@ -2,6 +2,7 @@
 (function(consapp, Calculator) {
 	
 	var cons = consapp.appendTo("calcapp");
+	
 	cons.addCommand("calc", function(args, api) {
 		
 		function parseExpression(exprStr) {
@@ -25,7 +26,7 @@
 		function parseNum(str, index) {
 			var num = parseFloat(str);
 			if (isNaN(num)) {
-				throw new Error("arg " + (index+1) + ": " + str + " n'est pas un nombre...");
+				throw new Error("Arg " + (index+1) + " (" + str + ") n'est pas un nombre...");
 			}
 			else {
 				return num;
