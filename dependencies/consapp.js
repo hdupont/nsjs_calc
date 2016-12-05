@@ -243,9 +243,6 @@ consapp.Command = (function() {
 	
 	function createApi(self) {
 		return {
-			getParams: function() {
-				return self._args.splice(1, self._args.length - 1);
-			},
 			/**
 			 *  Retourne ce qui suit le nom de la commande sous forme de string,
 			 *  en supprimant les espaces au début et à la fin.
