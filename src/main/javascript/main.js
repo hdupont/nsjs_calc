@@ -1,5 +1,5 @@
 // Where the magic happens.
-(function(consapp) {
+(function(consapp, Calculator) {
 	
 	var cons = consapp.appendTo("calcapp");
 	cons.addCommand("calc", function(args, api) {
@@ -31,39 +31,16 @@
 				return num;
 			}
 		}
-	
-		function calculate(operand1, operator, operand2) {
-			switch (operator) {
-				case "+":
-					res = operand1 + operand2;
-					break;
-				case "-":
-					res = operand1 - operand2;
-					break;
-				case "*":
-					res = operand1 * operand2;
-					break;
-				case "/":
-					if (operand2 === 0) {
-						throw new Error("La division par zéro n'est pas définie...");
-					}
-					else {
-						res = operand1 / operand2;
-					}
-					break;
-				default:
-					throw new Error(operator + " est un opérateur inconnu...");
-			}
-		}
 		
 		var res = "";
 		var exprStr = api.cmdArgsToString();
+		var calculator = Calculator.createCalculator();
 		try {
 			var exprComponents = parseExpression(exprStr)
 			var operand1 = parseNum(exprComponents[0]);
 			var operand2 = parseNum(exprComponents[2]);
 			var operator = exprComponents[1];
-			calculate(operand1, operator, operand2)
+			res = calculator.calculate(operand1, operator, operand2)
 		}
 		catch(e) {
 			res = e;
@@ -71,4 +48,4 @@
 	
 		return "" + res;
 	});
-})(consapp);
+})(consapp, calcapp.Calculator);

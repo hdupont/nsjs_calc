@@ -4,10 +4,10 @@
 // Namespace de l'application.
 var consapp = {};
 
-// Les utilitaires
+// Module contenant les utilitaires
 consapp.utils = {};
 
-//Des fonctions utiles pour gérer le clavier.
+// Utilitaire de gestion du clavier.
 consapp.utils.keyboard = (function() {
 	return {
 		isAlpha: function(code) {
