@@ -257,7 +257,22 @@ consapp.Command = (function() {
 		return this._isInteractive;
 	};
 	Command.prototype.onQuit = function(inputString) {
-		return this._isFirstExecution = true;
+		return 
+	};
+	Command.prototype.isQuittingTime = function(inputLine) {
+		var quittingTime = false;
+		if (this._isInteractive) {
+			var firstToken = inputLine.getFirstToken();
+			quittingTime = (firstToken === "quit");
+			if (quittingTime) {
+				this._isFirstExecution = true;
+			} 
+		}
+		else {
+			quittingTime = true;
+		}
+		
+		return quittingTime;
 	};
 	function createApi(self, inputLine) {
 		return {
@@ -474,10 +489,6 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 		
 		return outputElt;
 	}
-	function isQuittingTime(inputLine) {
-		var firstToken = inputLine.getFirstToken();
-		return firstToken === "quit";
-	}
 	function addKeyboadListener(that) {
 		that._domElt.addEventListener("keydown", function(event) {
 			if (keyboard.isAlpha(event.keyCode) || keyboard.isSpace(event.keyCode)) {
@@ -494,8 +505,7 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 				// et affiche son output.
 				if (that._currentCommand !== null) {
 					// Si quit on redirige les entrées vers la console console...
-					if (isQuittingTime(inputLine)) {
-						that._currentCommand.onQuit();
+					if (that._currentCommand.isQuittingTime(inputLine)) {
 						that._currentCommand = null;
 						// et on output rien ""
 					}
