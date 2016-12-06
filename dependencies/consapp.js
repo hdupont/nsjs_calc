@@ -223,7 +223,7 @@ consapp.Command = (function() {
 		this._name = name;
 		this._handler = handler;
 		this._args = null;
-		this._inputString = null;
+		this._options = null;
 	}
 	Command.createCommand = function(name, handler) {
 		return new Command(name, handler);
@@ -231,8 +231,8 @@ consapp.Command = (function() {
 	Command.prototype.getName = function() {
 		return this._name;
 	};
-	Command.prototype.execute = function() {
-		return this._handler(this._args, createApi(this));
+	Command.prototype.execute = function(inputLine) {
+		return this._handler(createApi(this, inputLine));
 	};
 	Command.prototype.setArgs = function(args) {
 		return this._args = args;
@@ -240,8 +240,11 @@ consapp.Command = (function() {
 	Command.prototype.setInputString = function(inputString) {
 		this._inputString = inputString;
 	};
+	Command.prototype.getIntroduction = function(inputString) {
+		return getOption(this, "description");
+	};
 	
-	function createApi(self) {
+	function createApi(self, inputLine) {
 		return {
 			/**
 			 *  Retourne ce qui suit le nom de la commande sous forme de string,
@@ -250,14 +253,27 @@ consapp.Command = (function() {
 			 *  > cmd    ab c d   
 			 *  getStringParam retournera "ab c d"
 			 */
-			cmdArgsToString: function() {
-				return self._inputString.substring(self._name.length).trim();
+			argsString: function() {
+				return inputLine.getInputString();
 			}
 		}
 	}
 	
-	function lineWithoutCmdName() {
-		return 
+	function getOption(self, optionName) {
+		var option = null;
+		if (self._options !== null && typeof self._options !== "undefined") {
+			option = self._options[optionName];
+		}
+		else {
+			option = defautOptions(self)[optionName];
+		}
+		return option; 
+	}
+	
+	function defautOptions(self) {
+		return {
+			description: self.getName() + " vous souhaite la bienvenue :)"
+		}; 
 	}
 	
 	return Command;
@@ -300,7 +316,7 @@ consapp.InputLine = (function() {
 	InputLine.createInputLine = function(line) {
 		return new InputLine(line);
 	};
-	InputLine.prototype.getCommandName = function() {
+	InputLine.prototype.getFirstToken = function() {
 		return this._line.split(" ")[0];
 	};
 	InputLine.prototype.parseArgs = function() {
@@ -309,6 +325,11 @@ consapp.InputLine = (function() {
 		});
 	};
 	InputLine.prototype.getInputString = function() {
+		return this._line;
+	};
+	InputLine.prototype.parseToken = function() {
+		var firstSpace = this._line.indexOf(" ");
+		this._line = this._line.substring(firstSpace);
 		return this._line;
 	};
 	
@@ -328,6 +349,8 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 		this._domElt = null; // Un singleton.
 		this._commands = Commands.createCommands();
 		this._promptLine = null;
+		this._currentCommand = null;
+		this._prompt = "console> ";
 	}
 	
 	Console.prototype.getDomElt = function() {
@@ -362,30 +385,23 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 	// private
 	// -------
 	
-	function processLine(self) {
-		var line = self._promptLine.read();
-		var inputLine = InputLine.createInputLine(line);
-		var commandName = inputLine.getCommandName();
-		var command = self._commands.get(commandName);
-		var output = "";
-		if (command === null) {
-			output = commandName + "... WTF?!"
+	function getPrompt(self) {
+		var promptName = ""
+	
+		if (self._currentCommand === null) {
+			promptName = "console";
 		}
 		else {
-			command.setArgs(inputLine.parseArgs());
-			command.setInputString(inputLine.getInputString());
-			output = command.execute();
+			promptName =  self._currentCommand.getName()
 		}
-		outputLine(self, output);
-		
-		addPromptLine(self);
+		return (promptName + "> ");
 	}
 	function outputLine(self, content) {
 		var line = addLine(self);
 		line.output(content);
 	}
-	function addPromptLine(that) {
-		return addLine(that, "> ");
+	function addPromptLine(self) {
+		return addLine(self, getPrompt(self));
 	}
 	function addLine(self, prompt) {
 		var line = new ConsoleLine(prompt ? prompt : "");
@@ -414,16 +430,49 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 		
 		return outputElt;
 	}
-	function parse(line) {
-		return line.split(" ");
+	function isQuittingTime(inputLine) {
+		var firstToken = inputLine.getFirstToken();
+		return firstToken === "quit";
 	}
 	function addKeyboadListener(that) {
 		that._domElt.addEventListener("keydown", function(event) {
 			if (keyboard.isAlpha(event.keyCode) || keyboard.isSpace(event.keyCode)) {
 				that._promptLine.addChar(event.key);
 			}
+			// NB. while (true) impossible dans la définition d'une commande
+			// donc on fait un peu plus compliqué.
+			// On switch le context d'exécution vers la commande, sort of...
 			else if (keyboard.isEnter(event.keyCode)) {
-				processLine(that);
+				var line = that._promptLine.read();
+				var inputLine = InputLine.createInputLine(line);
+				var output = "";
+				if (that._currentCommand !== null) {
+					// Si quit on redirige les entrées vers la console console...
+					if (isQuittingTime(inputLine)) {
+						that._currentCommand = null;
+						// et on output rien ""
+					}
+					else {
+						output = that._currentCommand.execute(inputLine);
+					}
+				}
+				else {
+					var commandName = inputLine.getFirstToken();
+					var command = that._commands.get(commandName);
+					if (command === null) {
+						output = commandName + "... WTF?!"
+					}
+					else {
+						that._currentCommand = command;
+						output = command.getIntroduction();
+					}
+				}
+				
+				if (typeof output !== "undefined" || output !== "") {
+					outputLine(that, output);
+				}
+				
+				addPromptLine(that);
 			}
 			else if (keyboard.isArrowLeft(event.keyCode)) {
 				that._promptLine.moveCursorLeft();
@@ -461,13 +510,8 @@ consapp = (function(Console) {
 			container.appendChild(jconsDomElt);
 			jconsDomElt.focus();
 			
-			jcons.addCommand("args", function(args) {
-				var argsStr = "";
-				for (var i = 1; i < args.length; i++) {
-					argsStr += args[i] + " ";
-				}
-				
-				return argsStr;
+			jcons.addCommand("echo", function(api) {
+				return api.argsString();
 			});
 			
 			return jcons;

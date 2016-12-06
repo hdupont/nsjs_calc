@@ -3,8 +3,12 @@
 	
 	var cons = consapp.appendTo("calcapp");
 	
-	cons.addCommand("calc", function(args, api) {
-		
+	/**
+	 * 
+	 * @param {string} expr La string représentant le calcul a effectuer.
+	 * @returns
+	 */
+	function calc(exprStr) {
 		function parseExpression(exprStr) {
 			var exprRegExp = /(.+)(\+|\-|\*|\/)(.+)/;
 			var match = exprRegExp.exec(exprStr);
@@ -34,7 +38,6 @@
 		}
 		
 		var res = "";
-		var exprStr = api.cmdArgsToString();
 		var calculator = Calculator.createCalculator();
 		try {
 			var exprComponents = parseExpression(exprStr)
@@ -48,5 +51,14 @@
 		}
 	
 		return "" + res;
+	}
+	
+	cons.addCommand("calk", function(api) {
+		return calc(api.argsString());
+	});
+	
+	cons.addCommand("calc", function(args, api) {
+		
+
 	});
 })(consapp, calcapp.Calculator);
