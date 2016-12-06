@@ -225,6 +225,7 @@ consapp.Command = (function() {
 		this._args = null;
 		this._options = null;
 		this._isInteractive = isInteractive;
+		this._isFirstExecution = true;
 	}
 	Command.createCommand = function(name, handler, isInteractive) {
 		return new Command(name, handler, isInteractive);
@@ -233,7 +234,15 @@ consapp.Command = (function() {
 		return this._name;
 	};
 	Command.prototype.execute = function(inputLine) {
-		return this._handler(createApi(this, inputLine));
+		var res = null;
+		if (this._isInteractive && this._isFirstExecution) {
+			this._isFirstExecution = false;
+			res = this.getIntroduction();
+		}
+		else {
+			res = this._handler(createApi(this, inputLine)); 
+		}
+		return res;
 	};
 	Command.prototype.setArgs = function(args) {
 		return this._args = args;
@@ -247,7 +256,9 @@ consapp.Command = (function() {
 	Command.prototype.isInteractive = function(inputString) {
 		return this._isInteractive;
 	};
-	
+	Command.prototype.onQuit = function(inputString) {
+		return this._isFirstExecution = true;
+	};
 	function createApi(self, inputLine) {
 		return {
 			/**
@@ -479,12 +490,12 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 				var line = that._promptLine.read();
 				var inputLine = InputLine.createInputLine(line);
 				var output = "";
-				// S'il y a une commande en cours d'exécution,
-				// alors on lui passe l'input, on récupère son output et on l'affiche.
-				// Sinon, on cherche si l'input correspond à une commande existante.
+				// Il y a une commande en cours d'exécution. On lui passe l'input
+				// et affiche son output.
 				if (that._currentCommand !== null) {
 					// Si quit on redirige les entrées vers la console console...
 					if (isQuittingTime(inputLine)) {
+						that._currentCommand.onQuit();
 						that._currentCommand = null;
 						// et on output rien ""
 					}
@@ -492,6 +503,8 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 						output = that._currentCommand.execute(inputLine);
 					}
 				}
+				// Il n'y pas de commande en cours d'exécution.
+				// on cherche si l'input correspond à une commande existante.
 				else {
 					var commandName = inputLine.getFirstToken();
 					var command = that._commands.get(commandName);
@@ -504,12 +517,8 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 						// Commande interactive
 						if (command.isInteractive()) {
 							that._currentCommand = command;
-							output = command.getIntroduction();	
 						}
-						// Commande one shot.
-						else {
-							output = command.execute(inputLine);
-						}
+						output = command.execute(inputLine);
 					}
 				}
 				
