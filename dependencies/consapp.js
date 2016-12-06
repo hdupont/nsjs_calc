@@ -2,13 +2,13 @@
 // dans son navigateur web.
 
 // Namespace de l'application.
-var consapp = {};
+var webcons = {};
 
 // Module contenant les utilitaires
-consapp.utils = {};
+webcons.utils = {};
 
 // Utilitaire de gestion du clavier.
-consapp.utils.keyboard = (function() {
+webcons.utils.keyboard = (function() {
 	return {
 		isAlpha: function(code) {
 			return (65 <= code && code <= 90)   // Majuscule.
@@ -42,7 +42,7 @@ consapp.utils.keyboard = (function() {
 // class Character
 // ---------------
 // Un Character est un caractère d'une ligne de la console.
-consapp.Character = (function() {
+webcons.Character = (function() {
 	
 	// public
 	// ------
@@ -71,7 +71,7 @@ consapp.Character = (function() {
 // class LineDomView
 // -----------------
 // Une LineDomView une ligne de la console telle qu'elle est vue par l'utilisateur.
-consapp.LineDomView = (function() {
+webcons.LineDomView = (function() {
 	
 	// public
 	// ------
@@ -134,7 +134,7 @@ consapp.LineDomView = (function() {
 // class ConsoleLine
 // -----------------
 // Une ConsoleLine est une ligne de la console.
-consapp.ConsoleLine = (function(Character, LineDomView) {
+webcons.ConsoleLine = (function(Character, LineDomView) {
 	
 	// public
 	// ------
@@ -215,21 +215,20 @@ consapp.ConsoleLine = (function(Character, LineDomView) {
 	}
 	
 	return ConsoleLine;	
-})(consapp.Character, consapp.LineDomView);
+})(webcons.Character, webcons.LineDomView);
 
 //-------------
 //class Command
 //-------------
 //Une Command est une commande que la console peut exécuter.
-consapp.Command = (function() {
+webcons.Command = (function() {
 	
 	function Command(name, handler, isInteractive) {
 		this._name = name;
 		this._handler = handler;
 		this._args = null;
 		this._options = null;
-		this._isInteractive = isInteractive;
-		this._isFirstExecution = true;
+		this._quittingTime = true;
 	}
 	Command.createCommand = function(name, handler, isInteractive) {
 		return new Command(name, handler, isInteractive);
@@ -253,7 +252,7 @@ consapp.Command = (function() {
 		return this._isInteractive;
 	};
 	Command.prototype.isQuittingTime = function(inputLine) {
-		return true;
+		return this._quittingTime;
 	};
 	Command.prototype.getArgsStringApiFun = function(inputLine) {
 		return function() {
@@ -299,10 +298,12 @@ consapp.Command = (function() {
 //class InteractiveCommand
 //------------------------
 //Une InteractiveCommand est une commande que prend la main sur le prompt.
-consapp.InteractiveCommand = (function(Command) {
+webcons.InteractiveCommand = (function(Command) {
 	
 	function InteractiveCommand(name, handler) {
 		Command.call(this, name, handler, true);
+		this._isFirstExecution = true;
+		this._quittingTime = false;
 	}
 	InteractiveCommand.prototype = Command.createCommand();
 	
@@ -310,26 +311,22 @@ consapp.InteractiveCommand = (function(Command) {
 		return new InteractiveCommand(name, handler);
 	}
 	InteractiveCommand.prototype.execute = function(inputLine) {
-		var res = null;
 		if (this._isFirstExecution) {
 			this._isFirstExecution = false;
-			res = this.getIntroduction();
+			return this.getIntroduction();
+		}
+		
+		var firstToken = inputLine.getFirstToken();
+		this._quittingTime = (firstToken === "quit");
+		if (this._quittingTime) {
+			this._isFirstExecution = true;
+			return "";
 		}
 		else {
 			res = Command.prototype.execute.call(this, inputLine); 
 		}
 		
 		return res;
-	};
-	InteractiveCommand.prototype.isQuittingTime = function(inputLine) {
-		var quittingTime = false;
-		var firstToken = inputLine.getFirstToken();
-		quittingTime = (firstToken === "quit");
-		if (quittingTime) {
-			this._isFirstExecution = true;
-		} 
-		
-		return quittingTime;
 	};
 	InteractiveCommand.prototype.getArgsStringApiFun = function(inputLine) {
 		return function() {
@@ -338,9 +335,9 @@ consapp.InteractiveCommand = (function(Command) {
 	};
 	
 	return InteractiveCommand;
-})(consapp.Command);
+})(webcons.Command);
 
-consapp.Commands = (function(Command, InteractiveCommand) {
+webcons.Commands = (function(Command, InteractiveCommand) {
 	
 	function Commands() {
 		this._commands = [];
@@ -377,9 +374,9 @@ consapp.Commands = (function(Command, InteractiveCommand) {
 	};
 	
 	return Commands;
-})(consapp.Command, consapp.InteractiveCommand);
+})(webcons.Command, webcons.InteractiveCommand);
 
-consapp.InputLine = (function() {
+webcons.InputLine = (function() {
 	
 	// public
 	// ------
@@ -414,7 +411,7 @@ consapp.InputLine = (function() {
 // class Console
 // --------------
 // Une Console est un simulacre de console.
-consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
+webcons.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 	
 	// public
 	// ------
@@ -475,7 +472,7 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 	function getPrompt(self) {
 		var promptName = ""
 	
-		if (self._currentCommand === null) {
+		if (self._currentCommand === null || self._currentCommand.isQui) {
 			promptName = "console";
 		}
 		else {
@@ -504,7 +501,7 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 	}
 	function buildJConsoleDomElt(that) {
 		var outputElt = document.createElement("div");
-		outputElt.setAttribute("id", "consapp");
+		outputElt.setAttribute("id", "webcons");
 		
 		// Pour écouter les keypress, le div doit d’abord pouvoir recevoir le focus
 		outputElt.tabIndex = "1";  // Permet au div de pouvoir recevoir le focus
@@ -535,25 +532,23 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 				if (that._currentCommand === null) {
 					var commandName = inputLine.getFirstToken();
 					var command = that._commands.get(commandName);
-					// Commande inconnue
-					if (command === null) {
-						output = commandName + "... WTF?!"
-					}
-					// Commande connue
-					else {
-						that._currentCommand = command;
-						output = command.execute(inputLine);
-					}
+					that._currentCommand = command;
 				}
-				// Si quit on redirige les entrées vers la console console...
-				else if (that._currentCommand.isQuittingTime(inputLine)) {
-					that._currentCommand = null;
-					// et on output rien ""
+				
+				// Commande inconnue
+				if (that._currentCommand === null) {
+					output = commandName + "... WTF?!";
 				}
-				// Il y a une commande en cours d'exécution. On lui passe l'input
-				// et affiche son output.
+				// Commande connue
 				else {
 					output = that._currentCommand.execute(inputLine);
+				}				
+				
+				// La commande a terminé son exécution.
+				if (that._currentCommand !== null && that._currentCommand.isQuittingTime(inputLine)) {
+					// La console reprend la main. Cf. ce qui se passe quand il n'y a pas
+					// de commande en cours d'exécution.
+					that._currentCommand = null;
 				}
 				
 				if (typeof output !== "undefined" || output !== "") {
@@ -581,10 +576,10 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 	}
 	
 	return Console;
-})(consapp.ConsoleLine, consapp.utils.keyboard, consapp.InputLine, consapp.Commands);
+})(webcons.ConsoleLine, webcons.utils.keyboard, webcons.InputLine, webcons.Commands);
 
 // API
-consapp = (function(Console) {
+webcons = (function(Console) {
 	return {
 		/**
 		 * Ajoute une console dans l'élément dont l'ID est passé en paramètre.
@@ -597,6 +592,10 @@ consapp = (function(Console) {
 			jconsDomElt = jcons.getDomElt();
 			container.appendChild(jconsDomElt);
 			jconsDomElt.focus();
+
+			jcons.addCommand("wtf", function(api) {
+				return api.argsString() + "... WTF?!";
+			});
 			
 			jcons.addCommand("echo", function(api) {
 				return api.argsString();
@@ -609,4 +608,4 @@ consapp = (function(Console) {
 			return jcons;
 		}
 	}
-})(consapp.Console);
+})(webcons.Console);

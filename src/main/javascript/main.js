@@ -60,4 +60,4 @@
 	cons.addCommand("calc", function(api) {
 		return calc(api.argsString());
 	});
-})(consapp, calcapp.Calculator);
+})(webcons, calcapp.Calculator);
