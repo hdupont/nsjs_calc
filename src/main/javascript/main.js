@@ -13,7 +13,7 @@
 			var exprRegExp = /(.+)(\+|\-|\*|\/)(.+)/;
 			var match = exprRegExp.exec(exprStr);
 			if (match === null) {
-				throw new Error("Expression non reconnue: " + exprRegExp);
+				throw new Error("Expression non reconnue: " + exprStr);
 			}
 
 			match = match.map(function(exprPart) {
@@ -53,8 +53,11 @@
 		return "" + res;
 	}
 	
-	cons.addCommand("calc", function(api) {
+	cons.addInteractiveCommand("calci", function(api) {
 		return calc(api.argsString());
 	});
 
+	cons.addCommand("calc", function(api) {
+		return calc(api.argsString());
+	});
 })(consapp, calcapp.Calculator);

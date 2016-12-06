@@ -219,14 +219,15 @@ consapp.ConsoleLine = (function(Character, LineDomView) {
 
 consapp.Command = (function() {
 	
-	function Command(name, handler) {
+	function Command(name, handler, isInteractive) {
 		this._name = name;
 		this._handler = handler;
 		this._args = null;
 		this._options = null;
+		this._isInteractive = isInteractive;
 	}
-	Command.createCommand = function(name, handler) {
-		return new Command(name, handler);
+	Command.createCommand = function(name, handler, isInteractive) {
+		return new Command(name, handler, isInteractive);
 	}
 	Command.prototype.getName = function() {
 		return this._name;
@@ -243,6 +244,9 @@ consapp.Command = (function() {
 	Command.prototype.getIntroduction = function(inputString) {
 		return getOption(this, "description");
 	};
+	Command.prototype.isInteractive = function(inputString) {
+		return this._isInteractive;
+	};
 	
 	function createApi(self, inputLine) {
 		return {
@@ -254,6 +258,14 @@ consapp.Command = (function() {
 			 *  getStringParam retournera "ab c d"
 			 */
 			argsString: function() {
+				// TODO faire de command une interface
+				// et créer deux classes: interactiveCommand et nonInteractiveCommand
+				if () {
+					
+				}
+				else {
+					
+				}
 				return inputLine.getInputString();
 			}
 		}
@@ -287,8 +299,8 @@ consapp.Commands = (function(Command) {
 	Commands.createCommands = function() {
 		return new Commands();
 	};
-	Commands.prototype.add = function(name, handler) {
-		this._commands.push(Command.createCommand(name, handler));
+	Commands.prototype.add = function(name, handler, isInteractive) {
+		this._commands.push(Command.createCommand(name, handler, isInteractive));
 	};
 	Commands.prototype.get = function(name) {
 		var res = null;
@@ -300,6 +312,11 @@ consapp.Commands = (function(Command) {
 			}
 		}
 		return res;
+	};
+	Commands.prototype.each = function(fun) {
+		this._commands.forEach(function(cmd) {
+			fun(cmd);
+		});
 	};
 	
 	return Commands;
@@ -379,7 +396,17 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 	};
 	
 	Console.prototype.addCommand = function(name, handler) {
-		this._commands.add(name, handler);
+		this._commands.add(name, handler, false);
+	};
+	Console.prototype.addInteractiveCommand = function(name, handler) {
+		this._commands.add(name, handler, true);
+	};
+	Console.prototype.findCommandsNames = function(name, handler) {
+		var names = "";
+		this._commands.each(function(cmd) {
+			name += cmd.getName() + ", "; 
+		});
+		names = name.substring(0, names.length - 2)
 	};
 	
 	// private
@@ -446,6 +473,9 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 				var line = that._promptLine.read();
 				var inputLine = InputLine.createInputLine(line);
 				var output = "";
+				// S'il y a une commande en cours d'exécution,
+				// alors on lui passe l'input, on récupère son output et on l'affiche.
+				// Sinon, on cherche si l'input correspond à une commande existante.
 				if (that._currentCommand !== null) {
 					// Si quit on redirige les entrées vers la console console...
 					if (isQuittingTime(inputLine)) {
@@ -459,12 +489,21 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 				else {
 					var commandName = inputLine.getFirstToken();
 					var command = that._commands.get(commandName);
+					// Commande inconnue
 					if (command === null) {
 						output = commandName + "... WTF?!"
 					}
+					// Commande connue
 					else {
-						that._currentCommand = command;
-						output = command.getIntroduction();
+						// Commande interactive
+						if (command.isInteractive()) {
+							that._currentCommand = command;
+							output = command.getIntroduction();	
+						}
+						// Commande one shot.
+						else {
+							output = command.execute(inputLine);
+						}
 					}
 				}
 				
@@ -512,6 +551,12 @@ consapp = (function(Console) {
 			
 			jcons.addCommand("echo", function(api) {
 				return api.argsString();
+			});
+			
+			jcons.addCommand("help", function(api) {
+				api.notInteractive();
+				
+				return jcons.findCommandsNames();
 			});
 			
 			return jcons;
