@@ -524,10 +524,7 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 					}
 					// Commande connue
 					else {
-						// Commande interactive
-						if (command.isInteractive()) {
-							that._currentCommand = command;
-						}
+						that._currentCommand = command;
 						output = command.execute(inputLine);
 					}
 				}
