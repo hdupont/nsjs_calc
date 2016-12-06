@@ -53,12 +53,8 @@
 		return "" + res;
 	}
 	
-	cons.addCommand("calk", function(api) {
+	cons.addCommand("calc", function(api) {
 		return calc(api.argsString());
 	});
-	
-	cons.addCommand("calc", function(args, api) {
-		
 
-	});
 })(consapp, calcapp.Calculator);
