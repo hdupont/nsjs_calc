@@ -260,13 +260,13 @@ consapp.Command = (function() {
 			argsString: function() {
 				// TODO faire de command une interface
 				// et créer deux classes: interactiveCommand et nonInteractiveCommand
-				if () {
-					
+				if (this._isInteractive) {
+					return inputLine.getInputString();
 				}
 				else {
-					
+					inputLine.parseToken();
+					return inputLine.getInputString();
 				}
-				return inputLine.getInputString();
 			}
 		}
 	}
