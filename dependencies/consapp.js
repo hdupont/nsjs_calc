@@ -313,10 +313,13 @@ consapp.Commands = (function(Command) {
 		}
 		return res;
 	};
-	Commands.prototype.each = function(fun) {
+	Commands.prototype.getNamesSorted = function(fun) {
+		var sortedNames = [];
 		this._commands.forEach(function(cmd) {
-			fun(cmd);
+			sortedNames.push(cmd.getName());
 		});
+		sortedNames.sort();
+		return sortedNames;
 	};
 	
 	return Commands;
@@ -346,7 +349,7 @@ consapp.InputLine = (function() {
 	};
 	InputLine.prototype.parseToken = function() {
 		var firstSpace = this._line.indexOf(" ");
-		this._line = this._line.substring(firstSpace);
+		this._line = this._line.substring(firstSpace+1);
 		return this._line;
 	};
 	
@@ -401,12 +404,15 @@ consapp.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 	Console.prototype.addInteractiveCommand = function(name, handler) {
 		this._commands.add(name, handler, true);
 	};
-	Console.prototype.findCommandsNames = function(name, handler) {
+	Console.prototype.findSortedCommandsNames = function(name, handler) {
+		var sortedNames = this._commands.getNamesSorted();
 		var names = "";
-		this._commands.each(function(cmd) {
-			name += cmd.getName() + ", "; 
+		sortedNames.forEach(function(nm) {
+			names +=nm + ", "; 
 		});
-		names = name.substring(0, names.length - 2)
+		names = names.substring(0, names.length - 2);
+		
+		return names;
 	};
 	
 	// private
@@ -554,9 +560,7 @@ consapp = (function(Console) {
 			});
 			
 			jcons.addCommand("help", function(api) {
-				api.notInteractive();
-				
-				return jcons.findCommandsNames();
+				return jcons.findSortedCommandsNames();
 			});
 			
 			return jcons;
