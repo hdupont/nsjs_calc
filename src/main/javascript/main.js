@@ -54,10 +54,10 @@
 	}
 	
 	cons.addInteractiveCommand("calci", function(api) {
-		return calc(api.argsString());
+		return calc(api.cmdArgsString());
 	});
 
 	cons.addInlineCommand("calc", function(api) {
-		return calc(api.argsString());
+		return calc(api.cmdArgsString());
 	});
 })(webcons, calcapp.Calculator);
