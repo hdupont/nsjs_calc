@@ -436,7 +436,7 @@ webcons.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 		this._promptLine.deleteChar();
 	};
 	
-	Console.prototype.addCommand = function(name, handler) {
+	Console.prototype.addInlineCommand = function(name, handler) {
 		this._commands.add(name, handler, false);
 	};
 	Console.prototype.addInteractiveCommand = function(name, handler) {
@@ -580,15 +580,15 @@ webcons = (function(Console) {
 			container.appendChild(jconsDomElt);
 			jconsDomElt.focus();
 
-			jcons.addCommand("wtf", function(api) {
+			jcons.addInlineCommand("wtf", function(api) {
 				return api.argsString() + "... WTF?!";
 			});
 			
-			jcons.addCommand("echo", function(api) {
+			jcons.addInlineCommand("echo", function(api) {
 				return api.argsString();
 			});
 			
-			jcons.addCommand("help", function(api) {
+			jcons.addInlineCommand("help", function(api) {
 				return jcons.findSortedCommandsNames();
 			});
 			

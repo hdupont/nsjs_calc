@@ -57,7 +57,7 @@
 		return calc(api.argsString());
 	});
 
-	cons.addCommand("calc", function(api) {
+	cons.addInlineCommand("calc", function(api) {
 		return calc(api.argsString());
 	});
 })(webcons, calcapp.Calculator);
