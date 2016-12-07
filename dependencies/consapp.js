@@ -349,7 +349,11 @@ webcons.Commands = (function(InlineCommand, InteractiveCommand) {
 				break;
 			}
 		}
+		
 		return res;
+	};
+	Commands.prototype.getDefaultCommand = function() {
+		return _wtfCommand;
 	};
 	Commands.prototype.getNamesSorted = function(fun) {
 		var sortedNames = [];
@@ -359,6 +363,10 @@ webcons.Commands = (function(InlineCommand, InteractiveCommand) {
 		sortedNames.sort();
 		return sortedNames;
 	};
+	
+	var _wtfCommand = new InlineCommand("wtf", function(api) {
+		return api.argsString() + "... WTF?!";
+	});
 	
 	return Commands;
 })(webcons.InlineCommand, webcons.InteractiveCommand);
@@ -524,12 +532,10 @@ webcons.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 				
 				// Commande inconnue
 				if (that._currentCommand === null) {
-					output = commandName + "... WTF?!";
+					that._currentCommand = that._commands.getDefaultCommand();
 				}
-				// Commande connue
-				else {
-					output = that._currentCommand.execute(inputLine);
-				}				
+	
+				output = that._currentCommand.execute(inputLine);
 				
 				// La commande a terminé son exécution.
 				if (that._currentCommand !== null && that._currentCommand.isQuittingTime(inputLine)) {
@@ -580,10 +586,6 @@ webcons = (function(Console) {
 			container.appendChild(jconsDomElt);
 			jconsDomElt.focus();
 
-			jcons.addInlineCommand("wtf", function(api) {
-				return api.argsString() + "... WTF?!";
-			});
-			
 			jcons.addInlineCommand("echo", function(api) {
 				return api.argsString();
 			});
