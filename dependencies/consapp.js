@@ -313,6 +313,7 @@ webcons.InteractiveCommand = (function(Command) {
 	InteractiveCommand.prototype.execute = function(inputLine) {
 		if (this._isFirstExecution) {
 			this._isFirstExecution = false;
+			this._quittingTime = false;
 			return this.getIntroduction();
 		}
 		
@@ -472,7 +473,7 @@ webcons.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 	function getPrompt(self) {
 		var promptName = ""
 	
-		if (self._currentCommand === null || self._currentCommand.isQui) {
+		if (self._currentCommand === null) {
 			promptName = "console";
 		}
 		else {
