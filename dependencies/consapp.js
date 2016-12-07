@@ -294,6 +294,14 @@ webcons.Command = (function() {
 	return Command;
 })();
 
+webcons.InlineCommand = (function(Command) {
+	function InlineCommand(name, handler) {
+		Command.call(this, name, handler);
+	}
+	InlineCommand.prototype = Command.createCommand();
+	
+})(webcons.Command);
+
 //------------------------
 //class InteractiveCommand
 //------------------------
@@ -301,7 +309,7 @@ webcons.Command = (function() {
 webcons.InteractiveCommand = (function(Command) {
 	
 	function InteractiveCommand(name, handler) {
-		Command.call(this, name, handler, true);
+		Command.call(this, name, handler);
 		this._isFirstExecution = true;
 		this._quittingTime = false;
 	}
