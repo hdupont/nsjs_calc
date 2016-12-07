@@ -216,9 +216,6 @@ webcons.Command = (function() {
 		this._options = null;
 		this._quittingTime = true;
 	}
-	Command.createCommand = function(name, handler, isInteractive) {
-		return new Command(name, handler, isInteractive);
-	}
 	Command.prototype.getName = function() {
 		return this._name;
 	};
@@ -284,7 +281,7 @@ webcons.InlineCommand = (function(Command) {
 	function InlineCommand(name, handler) {
 		Command.call(this, name, handler);
 	}
-	InlineCommand.prototype = Command.createCommand();
+	InlineCommand.prototype = new Command();
 	
 })(webcons.Command);
 
@@ -299,7 +296,7 @@ webcons.InteractiveCommand = (function(Command) {
 		this._isFirstExecution = true;
 		this._quittingTime = false;
 	}
-	InteractiveCommand.prototype = Command.createCommand();
+	InteractiveCommand.prototype = new Command();
 	
 	InteractiveCommand.createInteractiveCommand = function(name, handler) {
 		return new InteractiveCommand(name, handler);
@@ -341,7 +338,7 @@ webcons.Commands = (function(Command, InteractiveCommand) {
 		return new Commands();
 	};
 	Commands.prototype.add = function(name, handler) {
-		var inlineCmd = Command.createCommand(name, handler);
+		var inlineCmd = new Command(name, handler);
 		this._commands.push(inlineCmd);
 	};
 	Commands.prototype.addInteractiveCommand = function(name, handler) {
