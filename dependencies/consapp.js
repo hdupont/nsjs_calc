@@ -523,14 +523,14 @@ webcons.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 				var output = "";
 				
 				// Il n'y pas de commande en cours d'exécution.
-				// on cherche si l'input correspond à une commande existante.
+				// On cherche si l'input correspond à une commande existante.
 				if (that._currentCommand === null) {
 					var commandName = inputLine.getFirstToken();
 					var command = that._commands.get(commandName);
 					that._currentCommand = command;
 				}
 				
-				// Commande inconnue
+				// Commande inconnue. On récupère la commande par défaut.
 				if (that._currentCommand === null) {
 					that._currentCommand = that._commands.getDefaultCommand();
 				}
@@ -538,7 +538,7 @@ webcons.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 				output = that._currentCommand.execute(inputLine);
 				
 				// La commande a terminé son exécution.
-				if (that._currentCommand !== null && that._currentCommand.isQuittingTime(inputLine)) {
+				if (that._currentCommand.isQuittingTime(inputLine)) {
 					// La console reprend la main. Cf. ce qui se passe quand il n'y a pas
 					// de commande en cours d'exécution.
 					that._currentCommand = null;
