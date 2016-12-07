@@ -462,6 +462,22 @@ webcons.Console = (function(ConsoleLine, keyboard, Commands) {
 		
 		return names;
 	};
+	Console.prototype.loadDefaultInlineCommands = function() {
+		var self = this;
+		var defaultInlineCommands =  {
+			"echo": function(api) {
+				return api.cmdArgsString();
+			},
+			"help": function(api) {
+				// TODO mettre dans l'api et déplacer dans Commands
+				return self.findSortedCommandsNames();
+			}
+		};
+		
+		for (var cmdName in defaultInlineCommands) {
+			this.addInlineCommand(cmdName, defaultInlineCommands[cmdName]);
+		}
+	};
 	
 	// private
 	// -------
@@ -568,12 +584,12 @@ webcons.Console = (function(ConsoleLine, keyboard, Commands) {
 			}
 		});
 	}
-	
+
 	return Console;
 })(webcons.ConsoleLine, webcons.utils.keyboard, webcons.Commands);
 
 // API
-webcons = (function(Console) {
+webcons = (function(Console, defaultInlineCommands) {
 	return {
 		/**
 		 * Ajoute une console dans l'élément dont l'ID est passé en paramètre.
@@ -583,19 +599,12 @@ webcons = (function(Console) {
 			var container = document.getElementById(id);
 			
 			var jcons = new Console();
+			jcons.loadDefaultInlineCommands();
 			jconsDomElt = jcons.getDomElt();
 			container.appendChild(jconsDomElt);
 			jconsDomElt.focus();
-
-			jcons.addInlineCommand("echo", function(api) {
-				return api.cmdArgsString();
-			});
-			
-			jcons.addInlineCommand("help", function(api) {
-				return jcons.findSortedCommandsNames();
-			});
 			
 			return jcons;
 		}
 	}
-})(webcons.Console);
+})(webcons.Console, webcons);
