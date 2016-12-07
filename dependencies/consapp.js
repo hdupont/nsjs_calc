@@ -54,10 +54,6 @@ webcons.Character = (function() {
 	Character.prototype.getChar = function() {
 		return this._character ? this._character: "";
 	};
-	Character.createChar = function(character) {
-		var c = new Character(character);
-		return c;
-	}
 	Character.createEolChar = function() {
 		var eol = new Character(); // un espace
 		eol._isEol = true;
@@ -153,7 +149,7 @@ webcons.ConsoleLine = (function(Character, LineDomView) {
 		this._domView.updateLine(this);
 	};
 	ConsoleLine.prototype.addChar = function(character) {
-		this._chars.splice(this._cursorIndex, 0, Character.createChar(character));
+		this._chars.splice(this._cursorIndex, 0, new Character(character));
 		this._cursorIndex++;
 		this._domView.updateLine(this);
 	};
