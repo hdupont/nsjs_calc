@@ -283,6 +283,7 @@ webcons.InlineCommand = (function(Command) {
 	}
 	InlineCommand.prototype = new Command();
 	
+	return InlineCommand
 })(webcons.Command);
 
 //------------------------
@@ -298,9 +299,6 @@ webcons.InteractiveCommand = (function(Command) {
 	}
 	InteractiveCommand.prototype = new Command();
 	
-	InteractiveCommand.createInteractiveCommand = function(name, handler) {
-		return new InteractiveCommand(name, handler);
-	}
 	InteractiveCommand.prototype.execute = function(inputLine) {
 		if (this._isFirstExecution) {
 			this._isFirstExecution = false;
@@ -329,7 +327,7 @@ webcons.InteractiveCommand = (function(Command) {
 	return InteractiveCommand;
 })(webcons.Command);
 
-webcons.Commands = (function(Command, InteractiveCommand) {
+webcons.Commands = (function(InlineCommand, InteractiveCommand) {
 	
 	function Commands() {
 		this._commands = [];
@@ -338,11 +336,11 @@ webcons.Commands = (function(Command, InteractiveCommand) {
 		return new Commands();
 	};
 	Commands.prototype.add = function(name, handler) {
-		var inlineCmd = new Command(name, handler);
+		var inlineCmd = new InlineCommand(name, handler);
 		this._commands.push(inlineCmd);
 	};
 	Commands.prototype.addInteractiveCommand = function(name, handler) {
-		var interactiveCmd = InteractiveCommand.createInteractiveCommand(name, handler);
+		var interactiveCmd = new InteractiveCommand(name, handler);
 		this._commands.push(interactiveCmd);
 	};
 	Commands.prototype.get = function(name) {
@@ -366,7 +364,7 @@ webcons.Commands = (function(Command, InteractiveCommand) {
 	};
 	
 	return Commands;
-})(webcons.Command, webcons.InteractiveCommand);
+})(webcons.InlineCommand, webcons.InteractiveCommand);
 
 webcons.InputLine = (function() {
 	
