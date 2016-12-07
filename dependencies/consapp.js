@@ -511,7 +511,7 @@ webcons.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 			// On switch le context d'exécution vers la commande, sort of...
 			else if (keyboard.isEnter(event.keyCode)) {
 				var line = that._promptLine.read();
-				var inputLine = InputLine.createInputLine(line);
+				var inputLine = new InputLine(line);
 				var output = "";
 				
 				// Il n'y pas de commande en cours d'exécution.
