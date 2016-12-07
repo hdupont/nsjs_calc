@@ -483,16 +483,16 @@ webcons.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 		return addLine(self, getPrompt(self));
 	}
 	function addLine(self, prompt) {
-		var line = new ConsoleLine(prompt ? prompt : "");
+		var consoleLine = new ConsoleLine(prompt ? prompt : "");
 		if (prompt) {
-			self._promptLine = line
+			self._promptLine = consoleLine
 		}
 		var lineDomElt = document.createElement("div");
-		line.setDomContainer(lineDomElt);
+		consoleLine.setDomContainer(lineDomElt);
 		
 		self._domElt.appendChild(lineDomElt);
 		
-		return line;
+		return consoleLine;
 	}
 	function buildJConsoleDomElt(that) {
 		var outputElt = document.createElement("div");
