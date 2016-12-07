@@ -332,9 +332,6 @@ webcons.Commands = (function(InlineCommand, InteractiveCommand) {
 	function Commands() {
 		this._commands = [];
 	}
-	Commands.createCommands = function() {
-		return new Commands();
-	};
 	Commands.prototype.add = function(name, handler) {
 		var inlineCmd = new InlineCommand(name, handler);
 		this._commands.push(inlineCmd);
@@ -408,7 +405,7 @@ webcons.Console = (function(ConsoleLine, keyboard, InputLine, Commands) {
 
 	function Console() {
 		this._domElt = null; // Un singleton.
-		this._commands = Commands.createCommands();
+		this._commands = new Commands();
 		this._promptLine = null;
 		this._currentCommand = null;
 		this._prompt = "console> ";
