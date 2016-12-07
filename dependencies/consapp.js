@@ -75,15 +75,6 @@ webcons.LineDomView = (function() {
 	function LineDomView(domElt) {
 		this._domContainer = domElt;
 	}
-
-	LineDomView.createDomView = function(domElt) {
-		return new LineDomView(domElt);
-	};
-	LineDomView.createDomViewWithPromt = function(domElt, prompt) {
-		var domView = new LineDomView(domElt);
-		this._charToPrepend = prompt;
-		return domView;
-	};
 	LineDomView.prototype.updateLine = function(consLine) {
 		var chars = consLine._chars;
 		var cursorIndex = consLine._cursorIndex;
@@ -143,9 +134,8 @@ webcons.ConsoleLine = (function(Character, LineDomView) {
 		this._stringToPrepend = stringToPrepend ? stringToPrepend : "";
 		this._domView = null;
 	}
-	
 	ConsoleLine.prototype.setDomContainer = function(domContainer) {
-		this._domView = LineDomView.createDomView(domContainer);
+		this._domView = new LineDomView(domContainer);
 		this._domView.updateLine(this);
 	};
 	ConsoleLine.prototype.addChar = function(character) {
