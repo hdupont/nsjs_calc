@@ -276,6 +276,7 @@ webcons.Command = (function() {
 			return inputLine.getInputString();
 		};
 	};
+	// TODO déplacer la création de l'api dans Commands
 	Command.prototype.createApi = function(inputLine) {
 		var self = this;
 		return {
@@ -413,9 +414,9 @@ webcons.Console = (function(ConsoleLine, keyboard, Commands) {
 	// public
 	// ------
 
-	function Console() {
+	function Console(commands) {
 		this._domElt = null; // Un singleton.
-		this._commands = new Commands();
+		this._commands = commands;
 		this._promptLine = null;
 		this._currentCommand = null;
 		this._prompt = "console> ";
@@ -469,7 +470,7 @@ webcons.Console = (function(ConsoleLine, keyboard, Commands) {
 				return api.cmdArgsString();
 			},
 			"help": function(api) {
-				// TODO mettre dans l'api et déplacer dans Commands
+				// TODO Commands_1 mettre dans l'api et déplacer dans Commands
 				return self.findSortedCommandsNames();
 			}
 		};
@@ -597,10 +598,17 @@ webcons = (function(Console, defaultInlineCommands) {
 		 */
 		appendTo: function(id) {
 			var container = document.getElementById(id);
+
+			// TODO passer les commandes en paramètre de la console.
+			// précondition: faire TODO Commands_1
+//			var commands = new Commands();
 			
-			var jcons = new Console();
+			var jcons = new Console(commands);
+			
 			jcons.loadDefaultInlineCommands();
+			
 			jconsDomElt = jcons.getDomElt();
+			
 			container.appendChild(jconsDomElt);
 			jconsDomElt.focus();
 			
