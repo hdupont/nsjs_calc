@@ -414,9 +414,9 @@ webcons.Console = (function(ConsoleLine, keyboard, Commands) {
 	// public
 	// ------
 
-	function Console(commands) {
+	function Console() {
 		this._domElt = null; // Un singleton.
-		this._commands = commands;
+		this._commands = new Commands();
 		this._promptLine = null;
 		this._currentCommand = null;
 		this._prompt = "console> ";
@@ -603,7 +603,7 @@ webcons = (function(Console, defaultInlineCommands) {
 			// précondition: faire TODO Commands_1
 //			var commands = new Commands();
 			
-			var jcons = new Console(commands);
+			var jcons = new Console();
 			
 			jcons.loadDefaultInlineCommands();
 			
